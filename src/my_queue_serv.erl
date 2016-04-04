@@ -24,12 +24,11 @@
 
 -define(SERVER, ?MODULE).
 
--record(state,
-{
-  queue = my_queue:new(),
-  listen_socket,
-  accept_socket
-}).
+
+%%%===================================================================
+%%% Get state record
+%%%===================================================================
+-include("state.hrl").
 
 %%%===================================================================
 %%% API
@@ -112,37 +111,9 @@ handle_cast(first_accept, State = #state{listen_socket = ListenSocket}) ->
   {noreply, NewState :: #state{}, timeout() | hibernate} |
   {stop, Reason :: term(), NewState :: #state{}}).
 
-handle_info({tcp, AcceptSocket, <<"quit", _/binary>>}, State=#state{accept_socket = AcceptSocket}) ->
-  send(AcceptSocket, "Connection being closed...\n"),
-  gen_tcp:close(AcceptSocket),
-  {stop, normal, State};
+handle_info(ReceivedMessage, State) ->
+  my_queue_com_handler:handle_info(ReceivedMessage, State).
 
-handle_info({tcp, AcceptSocket, <<"out", _/binary>>}, State = #state{queue = Queue, accept_socket = AcceptSocket}) ->
-  case my_queue:out(Queue) of
-    {{value, Item}, RemainingQueue} ->
-      send(AcceptSocket, io_lib:format("Item: ~s~n", [Item])),
-      {noreply, State#state{queue = RemainingQueue}};
-    empty ->
-      send(AcceptSocket, "Queue is empty.\n"),
-      {noreply, State}
-  end;
-
-handle_info({tcp, AcceptSocket, <<"in", Item/binary>>}, State = #state{queue = Queue, accept_socket = AcceptSocket}) ->
-  NewQueue = my_queue:in(Item, Queue),
-  send(AcceptSocket, "New item added.\n"),
-  {noreply, State#state{queue = NewQueue}};
-
-handle_info({tcp, AcceptSocket, <<_/binary>>}, State = #state{accept_socket = AcceptSocket}) ->
-  send(AcceptSocket, "No Match.\n"),
-  {noreply, State};
-%Connection closed from client
-handle_info({tcp_closed, _Socket}, State) ->
-  {stop, normal, State};
-handle_info({tcp_error, _Socket, _}, State) ->
-  {stop, normal, State};
-handle_info(Error, State) ->
-  io:format("Problem occured (~p)~n", [Error]),
-  {noreply, State}.
 %%--------------------------------------------------------------------
 %% @private
 %% @doc
@@ -176,6 +147,3 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-send(AcceptSocket, ToSend) ->
-  gen_tcp:send(AcceptSocket, ToSend),
-  inet:setopts(AcceptSocket, [{active, once}]).
