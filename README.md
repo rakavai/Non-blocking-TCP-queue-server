@@ -3,11 +3,10 @@ my_queue
 
 ##An OTP application of Queue And TCP
 
-Usage
+Environment variable to set:
 -----
 
-    Environment variable to set:
-        'port' for tcp port number
+   'port' for tcp port number
 
 ###Communication
 
