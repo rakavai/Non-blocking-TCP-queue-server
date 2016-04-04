@@ -1,0 +1,19 @@
+{application, my_queue,
+  [
+    {description, "An Queue App"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {mod, {my_queue_app, []}},
+    {applications,
+      [
+        kernel,
+        stdlib
+      ]
+    },
+    {env, []},
+    {modules, [my_queue, my_queue_sup, my_queue_serve, my_queue_app]},
+    {maintainers, []},
+    {licenses, []},
+    {links, []}
+  ]
+}.

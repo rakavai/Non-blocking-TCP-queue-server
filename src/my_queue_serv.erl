@@ -4,7 +4,7 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 03. Apr 2016 8:17 pM
+%%% Created : 03. Apr 2016 8:17 PM
 %%%-------------------------------------------------------------------
 -module(my_queue_serv).
 -author("Rakibul Hasan").
